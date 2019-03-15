@@ -3,6 +3,7 @@
 
 #include <QStringList>
 #include <QMap>
+#include <QRunnable>
 #include <TGlobal>
 #include <TAccessLog>
 #include "tatomic.h"
@@ -19,7 +20,7 @@ class TTemporaryFile;
 class TActionController;
 
 
-class T_CORE_EXPORT TActionContext : public TDatabaseContext
+class T_CORE_EXPORT TActionContext : public TDatabaseContext, public QRunnable
 {
 public:
     TActionContext();
@@ -31,6 +32,9 @@ public:
     const TActionController *currentController() const { return currController; }
     THttpRequest &httpRequest() { return *httpReq; }
     const THttpRequest &httpRequest() const { return *httpReq; }
+
+    static TActionContext *currentContext();
+    static void setCurrentContext(TActionContext *context);
 
 protected:
     void execute(THttpRequest &request, int sid);
@@ -44,15 +48,15 @@ protected:
     virtual void closeHttpSocket() { }
     virtual void emitError(int socketError);
 
-    TAtomic<bool> stopped;
+    TAtomic<bool> stopped {false};
     QStringList autoRemoveFiles;
-    int socketDesc;
+    int socketDesc {0};
     TAccessLogger accessLogger;
 
 private:
-    TActionController *currController;
+    TActionController *currController {nullptr};
     QList<TTemporaryFile *> tempFiles;
-    THttpRequest *httpReq;
+    THttpRequest *httpReq {nullptr};
 
     T_DISABLE_COPY(TActionContext)
     T_DISABLE_MOVE(TActionContext)

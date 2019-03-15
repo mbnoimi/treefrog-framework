@@ -162,6 +162,9 @@ uint64_t Tf::random(uint64_t max)
 
 TActionContext *Tf::currentContext()
 {
+#if 1
+    return TActionContext::currentContext();
+#else
     TActionContext *context = nullptr;
 
     switch ( Tf::app()->multiProcessingModule() ) {
@@ -187,6 +190,7 @@ TActionContext *Tf::currentContext()
     }
 
     throw RuntimeException("Can not cast the current thread", __FILE__, __LINE__);
+#endif
 }
 
 

@@ -23,18 +23,17 @@
 #include "turlroute.h"
 #include "tabstractwebsocket.h"
 
+// Stores a pointer to current action context into TLS
+//  - qulonglong type to prevent qThreadStorage_deleteData() function to work
+static QThreadStorage<qulonglong> contextPtrTls;
+
 /*!
   \class TActionContext
   \brief The TActionContext class is the base class of contexts for
   action controllers.
 */
 
-TActionContext::TActionContext()
-    : TDatabaseContext(),
-      stopped(false),
-      socketDesc(0),
-      currController(nullptr),
-      httpReq(nullptr)
+TActionContext::TActionContext() : TDatabaseContext()
 {
     accessLogger.open();
 }
@@ -456,4 +455,19 @@ TTemporaryFile &TActionContext::createTemporaryFile()
 QHostAddress TActionContext::clientAddress() const
 {
     return httpReq->clientAddress();
+}
+
+
+TActionContext *TActionContext::currentContext()
+{
+    return reinterpret_cast<TActionContext*>(contextPtrTls.localData());
+}
+
+
+void TActionContext::setCurrentContext(TActionContext *context)
+{
+    if (context && contextPtrTls.hasLocalData()) {
+        tSystemWarn("Duplicate set : setCurrentDatabaseContext()");
+    }
+    contextPtrTls.setLocalData((qulonglong)context);
 }
