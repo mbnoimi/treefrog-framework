@@ -9,6 +9,7 @@
 #include <TWebApplication>
 #include <TAppSettings>
 #include <TActionThread>
+#include <QThreadPool>
 #include "tsqldatabasepool.h"
 #include "tkvsdatabasepool.h"
 #include "turlroute.h"
@@ -98,6 +99,7 @@ void TThreadApplicationServer::stop()
 
 void TThreadApplicationServer::incomingConnection(qintptr socketDescriptor)
 {
+#if 0
     for (;;) {
         tSystemDebug("incomingConnection  sd:%lld  thread count:%d  max:%d", (qint64)socketDescriptor, TActionThread::threadCount(), maxThreads);
         if (TActionThread::threadCount() < maxThreads) {
@@ -109,6 +111,19 @@ void TThreadApplicationServer::incomingConnection(qintptr socketDescriptor)
         //Tf::msleep(1);
         qApp->processEvents(QEventLoop::ExcludeSocketNotifiers);
     }
+#else
+    QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
+    for (;;) {
+        tSystemDebug("incomingConnection  sd:%lld  thread count:%d  max:%d", (qint64)socketDescriptor, TActionThread::threadCount(), maxThreads);
+        if (TActionThread::threadCount() < maxThreads) {
+            TActionThread *thread = new TActionThread(socketDescriptor, maxThreads);
+            QThreadPool::globalInstance()->start(thread);
+            break;
+        }
+        //Tf::msleep(1);
+        qApp->processEvents(QEventLoop::ExcludeSocketNotifiers);
+    }
+#endif
 }
 
 

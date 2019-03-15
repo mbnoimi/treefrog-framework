@@ -11,7 +11,8 @@ class THttpResponseHeader;
 class QIODevice;
 
 
-class T_CORE_EXPORT TActionThread : public QThread, public TActionContext
+//class T_CORE_EXPORT TActionThread : public QThread, public TActionContext
+class T_CORE_EXPORT TActionThread : public QObject, public TActionContext
 {
     Q_OBJECT
 public:

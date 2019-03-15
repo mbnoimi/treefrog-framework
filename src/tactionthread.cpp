@@ -52,8 +52,11 @@ bool TActionThread::waitForAllDone(int msec)
   \brief The TActionThread class provides a thread context.
 */
 
-TActionThread::TActionThread(int socket, int maxThreads)
-    : QThread(), TActionContext(), _maxThreads(maxThreads)
+TActionThread::TActionThread(int socket, int maxThreads) :
+    //QThread(),
+    QObject(),
+    TActionContext(),
+    _maxThreads(maxThreads)
 {
     ++threadCounter;
     TActionContext::socketDesc = socket;
@@ -71,8 +74,9 @@ TActionThread::~TActionThread()
         _httpSocket->deleteLater();
     }
 
-    if (TActionContext::socketDesc > 0)
+    if (TActionContext::socketDesc > 0) {
         tf_close(TActionContext::socketDesc);
+    }
 
     --threadCounter;
 }
@@ -83,9 +87,11 @@ void TActionThread::run()
     QList<THttpRequest> reqs;
     QEventLoop eventLoop;
     _httpSocket = new THttpSocket();
+    TActionContext::setCurrentContext(this);
 
-    if (Q_UNLIKELY(!_httpSocket->setSocketDescriptor(TActionContext::socketDesc))) {
+    if (Q_UNLIKELY(! _httpSocket->setSocketDescriptor(TActionContext::socketDesc))) {
         emitError(_httpSocket->error());
+        tf_close(TActionContext::socketDesc);
         goto socket_error;
     }
     TActionContext::socketDesc = 0;
@@ -167,6 +173,8 @@ socket_cleanup:
     while (eventLoop.processEvents()) {}
 
 socket_error:
+    TActionContext::socketDesc = 0;
+    TActionContext::setCurrentContext(nullptr);
     TDatabaseContext::setCurrentDatabaseContext(nullptr);
     _httpSocket->deleteLater();
     _httpSocket = nullptr;

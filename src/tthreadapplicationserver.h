@@ -40,11 +40,11 @@ class TStaticInitializeThread : public TActionThread
 public:
     static void exec()
     {
-        TStaticInitializeThread *initializer = new TStaticInitializeThread();
-        initializer->start();
-        QThread::yieldCurrentThread();  // needed to avoid deadlock on win
-        initializer->wait();
-        delete initializer;
+        // TStaticInitializeThread *initializer = new TStaticInitializeThread();
+        // initializer->start();
+        // QThread::yieldCurrentThread();  // needed to avoid deadlock on win
+        // initializer->wait();
+        // delete initializer;
 
     }
 
@@ -64,11 +64,11 @@ class TStaticReleaseThread : public TActionThread
 public:
     static void exec()
     {
-        TStaticReleaseThread *releaser = new TStaticReleaseThread();
-        releaser->start();
-        QThread::yieldCurrentThread();
-        releaser->wait();
-        delete releaser;
+        // TStaticReleaseThread *releaser = new TStaticReleaseThread();
+        // releaser->start();
+        // QThread::yieldCurrentThread();
+        // releaser->wait();
+        // delete releaser;
     }
 
 protected:
